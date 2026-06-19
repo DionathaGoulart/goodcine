@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @layer base {
   *, *::before, *::after {
@@ -8,15 +9,46 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  body {
+    background-color: #09090b; /* zinc-950 */
+    color: #fafafa;
+  }
+
+  /* Scrollbar global discreta */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3f3f46;
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #52525b;
   }
 }
 
 @layer utilities {
+  /* Remove scrollbar nos carrosséis */
   .scrollbar-none {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
   .scrollbar-none::-webkit-scrollbar {
     display: none;
+  }
+
+  /* Gradiente de texto estilo Netflix */
+  .text-gradient {
+    background: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

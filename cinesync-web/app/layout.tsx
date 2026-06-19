@@ -1,22 +1,28 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"] });
+import type { Metadata } from "next"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "CineSync",
-  description: "Gerencie seus filmes e séries com amigos.",
-};
+  title: {
+    default: "CineSync",
+    template: "%s · CineSync",
+  },
+  description: "Descubra, rastreie e compartilhe filmes e séries com seus amigos.",
+  keywords: ["filmes", "séries", "streaming", "recomendações", "cinema"],
+  openGraph: {
+    title: "CineSync",
+    description: "Descubra, rastreie e compartilhe filmes e séries com seus amigos.",
+    type: "website",
+  },
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="pt-BR" className="dark">
-      <body className={inter.className}>{children}</body>
+      <body>{children}</body>
     </html>
-  );
+  )
 }

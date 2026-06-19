@@ -1,7 +1,6 @@
 import { MotionWrapper } from "@/components/layout/MotionWrapper"
 import { QueryProvider } from "@/components/providers/QueryProvider"
-import { Navbar } from "@/components/layout/Navbar"
-import { Sidebar } from "@/components/layout/Sidebar"
+import { Header } from "@/components/layout/Header"
 import { ReviewForm } from "@/components/review/ReviewForm"
 
 export default function AppLayout({
@@ -12,16 +11,13 @@ export default function AppLayout({
   return (
     <QueryProvider>
       <MotionWrapper>
-        <div className="min-h-screen bg-zinc-950 text-zinc-50 font-sans selection:bg-indigo-500/30 overflow-hidden flex">
-        <Sidebar />
-        <div className="flex flex-col flex-1 min-w-0 h-screen overflow-y-auto bg-zinc-950">
-          <Navbar />
-          <main className="flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-8 lg:p-10 relative">
+        <div className="min-h-screen bg-zinc-950 text-zinc-50 selection:bg-indigo-500/30">
+          <Header />
+          <main className="w-full max-w-[1700px] mx-auto px-6 md:px-10 pb-8">
             {children}
           </main>
+          <ReviewForm />
         </div>
-        <ReviewForm />
-      </div>
       </MotionWrapper>
     </QueryProvider>
   )
