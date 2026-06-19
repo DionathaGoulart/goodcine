@@ -1,7 +1,0 @@
-{
-  "buildCommand": "cd cinesync-web && npm run build",
-  "outputDirectory": "cinesync-web/.next",
-  "installCommand": "cd cinesync-web && npm install",
-  "devCommand": "cd cinesync-web && npm run dev",
-  "framework": "nextjs"
-}
