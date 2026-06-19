@@ -21,8 +21,7 @@ async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {
       accept: 'application/json',
       Authorization: `Bearer ${TMDB_BEARER_TOKEN}`,
     },
-    // Usa a infra do Next.js de fetch caching (1 hora de cache)
-    next: { revalidate: 3600 } 
+    next: { revalidate: 3600 }
   });
 
   if (!response.ok) {
@@ -30,6 +29,14 @@ async function fetchTMDB<T>(endpoint: string, params: Record<string, string> = {
   }
 
   return response.json();
+}
+
+// Garante que todos os itens tenham media_type definido
+function withMovieType(result: TMDBSearchResult): TMDBSearchResult {
+  return { ...result, results: result.results.map(r => ({ ...r, media_type: r.media_type ?? 'movie' as const })) };
+}
+function withTVType(result: TMDBSearchResult): TMDBSearchResult {
+  return { ...result, results: result.results.map(r => ({ ...r, media_type: r.media_type ?? 'tv' as const })) };
 }
 
 export const tmdbClient = {
@@ -53,10 +60,39 @@ export const tmdbClient = {
     });
   },
 
-  getTrending: () => {
-    return fetchTMDB<TMDBSearchResult>('/trending/all/day');
+  // Trending separado por tipo
+  getTrendingMovies: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/trending/movie/day');
+    return withMovieType(r);
   },
-  
+
+  getTrendingTV: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/trending/tv/day');
+    return withTVType(r);
+  },
+
+  // Top rated — fallback quando não há recomendações personalizadas
+  getTopRatedMovies: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/movie/top_rated');
+    return withMovieType(r);
+  },
+
+  getTopRatedTV: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/tv/top_rated');
+    return withTVType(r);
+  },
+
+  // Lançamentos recentes
+  getRecentMovies: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/movie/now_playing');
+    return withMovieType(r);
+  },
+
+  getRecentTV: async () => {
+    const r = await fetchTMDB<TMDBSearchResult>('/tv/on_the_air');
+    return withTVType(r);
+  },
+
   discoverMovies: (genreIds: string[]) => {
     return fetchTMDB<TMDBSearchResult>('/discover/movie', {
       with_genres: genreIds.join(','),

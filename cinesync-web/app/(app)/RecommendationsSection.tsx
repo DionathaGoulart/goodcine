@@ -1,62 +1,82 @@
 "use client"
 
 import { useRecommendations } from "@/lib/hooks/useRecommendations"
-import { MediaGrid } from "@/components/media/MediaGrid"
-import { motion } from "motion/react"
+import { CarouselRow } from "@/components/media/CarouselRow"
 import { Sparkles } from "lucide-react"
+import { TMDBMedia } from "@/lib/tmdb/types"
 
-export function RecommendationsSection() {
+interface RecommendationsSectionProps {
+  topRatedMovies: TMDBMedia[]
+  topRatedTV: TMDBMedia[]
+}
+
+export function RecommendationsSection({ topRatedMovies, topRatedTV }: RecommendationsSectionProps) {
   const { data: recommendations, isLoading } = useRecommendations()
 
-  if (isLoading) {
-    return (
-      <section className="mb-12">
-        <div className="flex items-center gap-2 mb-6">
-          <Sparkles className="text-purple-500" />
-          <h2 className="text-2xl font-bold text-white">Recomendados para Você</h2>
-        </div>
-        <div className="flex gap-4 overflow-hidden">
-          {[1,2,3,4,5].map(i => (
-            <motion.div
-              key={i}
-              className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl aspect-[2/3] w-full max-w-[200px]"
-              animate={{ opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: i * 0.1 }}
-            />
-          ))}
-        </div>
-      </section>
-    )
+  // Separa recomendações por tipo
+  const recMovies: TMDBMedia[] = []
+  const recTV: TMDBMedia[] = []
+
+  if (recommendations && recommendations.length > 0) {
+    recommendations.forEach(rec => {
+      const item = {
+        id: rec.media.tmdb_id ?? 0,
+        title: rec.media.title,
+        name: rec.media.title,
+        poster_path: rec.media.poster_url,
+        backdrop_path: rec.media.backdrop_url,
+        media_type: rec.media.type === 'movie' ? 'movie' : 'tv',
+        overview: rec.media.overview ?? '',
+        vote_average: 0,
+        vote_count: 0,
+        genre_ids: [],
+        popularity: 0,
+      } as TMDBMedia
+
+      if (rec.media.type === 'movie') recMovies.push(item)
+      else recTV.push(item)
+    })
   }
 
-  if (!recommendations || recommendations.length === 0) {
-    return null
-  }
-
-  // Formata a recomendação para encaixar na prop TMDBMedia do MediaCard
-  const formattedItems = recommendations.map(rec => ({
-    id: rec.media.tmdb_id,
-    title: rec.media.title,
-    poster_path: rec.media.poster_url,
-    backdrop_path: rec.media.backdrop_url,
-    media_type: rec.media.type,
-    overview: rec.media.overview,
-    vote_average: 0,
-    vote_count: 0,
-    genre_ids: [],
-    popularity: 0
-  } as any))
+  // Se não tem recomendações personalizadas, usa top rated como fallback
+  const hasPersonalRecs = !isLoading && (recMovies.length > 0 || recTV.length > 0)
+  const movieItems = hasPersonalRecs ? recMovies : topRatedMovies
+  const tvItems = hasPersonalRecs ? recTV : topRatedTV
+  const subtitle = hasPersonalRecs
+    ? "Baseado no seu perfil de gostos"
+    : "Os mais bem avaliados de todos os tempos"
 
   return (
-    <section className="mb-12">
-      <div className="flex items-center gap-3 mb-6 border-l-4 border-purple-500 pl-4 bg-purple-500/5 py-2 rounded-r-xl">
-        <Sparkles className="text-purple-500" size={24} />
+    <section className="space-y-6">
+      {/* Header da seção */}
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+          <Sparkles size={16} className="text-white" />
+        </div>
         <div>
-          <h2 className="text-2xl font-bold text-white">Recomendados para Você</h2>
-          <p className="text-sm text-zinc-400">Baseado no seu perfil de gostos.</p>
+          <h2 className="text-xl font-black text-white tracking-tight">
+            {hasPersonalRecs ? "Recomendado para Você" : "Muito Bem Avaliados"}
+          </h2>
+          <p className="text-xs text-zinc-500">{subtitle}</p>
         </div>
       </div>
-      <MediaGrid items={formattedItems} />
+
+      <div className="space-y-8">
+        <CarouselRow
+          title="Filmes"
+          subtitle={hasPersonalRecs ? "Filmes que combinam com seu gosto" : "Os filmes mais aclamados"}
+          type="movie"
+          items={movieItems}
+          isLoading={isLoading}
+        />
+        <CarouselRow
+          title="Séries"
+          subtitle={hasPersonalRecs ? "Séries que você vai curtir" : "As séries mais aclamadas"}
+          type="tv"
+          items={tvItems}
+          isLoading={isLoading}
+        />
+      </div>
     </section>
   )
 }
