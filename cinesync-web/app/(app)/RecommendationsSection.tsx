@@ -19,21 +19,22 @@ export function RecommendationsSection({ topRatedMovies, topRatedTV }: Recommend
 
   if (recommendations && recommendations.length > 0) {
     recommendations.forEach(rec => {
+      const mediaObj: any = Array.isArray(rec.media) ? rec.media[0] : rec.media
       const item = {
-        id: rec.media.tmdb_id ?? 0,
-        title: rec.media.title,
-        name: rec.media.title,
-        poster_path: rec.media.poster_url,
-        backdrop_path: rec.media.backdrop_url,
-        media_type: rec.media.type === 'movie' ? 'movie' : 'tv',
-        overview: rec.media.overview ?? '',
+        id: mediaObj.tmdb_id ?? 0,
+        title: mediaObj.title,
+        name: mediaObj.title,
+        poster_path: mediaObj.poster_url,
+        backdrop_path: mediaObj.backdrop_url,
+        media_type: mediaObj.type === 'movie' ? 'movie' : 'tv',
+        overview: mediaObj.overview ?? '',
         vote_average: 0,
         vote_count: 0,
         genre_ids: [],
         popularity: 0,
       } as TMDBMedia
 
-      if (rec.media.type === 'movie') recMovies.push(item)
+      if (mediaObj.type === 'movie') recMovies.push(item)
       else recTV.push(item)
     })
   }

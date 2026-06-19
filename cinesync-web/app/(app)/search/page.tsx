@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useTransition } from "react"
+import { useState, useEffect, useTransition, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "motion/react"
 import { Search, Loader2, Film, Tv, SlidersHorizontal } from "lucide-react"
@@ -11,7 +11,7 @@ import { useDebounce } from "@/lib/hooks/useDebounce"
 
 type Filter = "all" | "movie" | "tv"
 
-export default function SearchPage() {
+function SearchContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const initialQuery = searchParams.get("q") ?? ""
@@ -193,5 +193,13 @@ export default function SearchPage() {
         </AnimatePresence>
       </div>
     </AuthGuard>
+  )
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center py-32"><Loader2 className="animate-spin text-zinc-500" size={32} /></div>}>
+      <SearchContent />
+    </Suspense>
   )
 }
