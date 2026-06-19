@@ -8,7 +8,9 @@ import { useQueryClient } from "@tanstack/react-query"
 import { X, Star, Send } from "lucide-react"
 
 export function ReviewForm() {
-  const { isReviewModalOpen, activeMediaIdForReview, closeReviewModal } = useAppStore()
+  const isReviewModalOpen = useAppStore((state) => state.isReviewModalOpen)
+  const activeMediaIdForReview = useAppStore((state) => state.activeMediaIdForReview)
+  const closeReviewModal = useAppStore((state) => state.closeReviewModal)
   const [content, setContent] = useState("")
   const [rating, setRating] = useState<number>(0)
   const [hoverRating, setHoverRating] = useState<number>(0)

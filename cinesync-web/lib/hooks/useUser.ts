@@ -22,13 +22,14 @@ export function useUser() {
         .from('profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle() // retorna null (não erro) se o perfil ainda não existir
       
       if (error) throw error
-      return data
+      return data // null se não encontrado, objeto se encontrado
     },
     enabled: !!user?.id,
     staleTime: 1000 * 60 * 5,
+    retry: false, // não tenta de novo em caso de erro real
   })
 
   return {

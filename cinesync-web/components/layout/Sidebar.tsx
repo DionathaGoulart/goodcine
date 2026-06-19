@@ -6,10 +6,9 @@ import { useAppStore } from '@/lib/stores/useAppStore'
 import { Home, Search, Heart, Users, X, List } from 'lucide-react'
 
 export function Sidebar() {
-  const { isSidebarOpen, closeSidebar } = useAppStore((state) => ({
-    isSidebarOpen: state.isSidebarOpen,
-    closeSidebar: () => state.setSidebarOpen(false),
-  }))
+  const isSidebarOpen = useAppStore((state) => state.isSidebarOpen)
+  const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
+  const closeSidebar = () => setSidebarOpen(false)
 
   const navLinks = [
     { href: '/', label: 'Home', icon: Home },

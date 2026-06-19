@@ -13,14 +13,26 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
+
   const router = useRouter()
   const supabase = createClient()
 
+  const validatePassword = (pwd: string): string | null => {
+    if (pwd.length < 8) return "A senha deve ter pelo menos 8 caracteres."
+    if (!/[A-Z]/.test(pwd)) return "A senha deve conter pelo menos uma letra maiúscula."
+    if (!/[0-9]/.test(pwd)) return "A senha deve conter pelo menos um número."
+    if (!/[^A-Za-z0-9]/.test(pwd)) return "A senha deve conter pelo menos um caractere especial."
+    return null
+  }
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError(null)
+
+    const pwdError = validatePassword(password)
+    if (pwdError) { setError(pwdError); return }
+
+    setLoading(true)
 
     // 1. Cadastra no auth do Supabase
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -34,28 +46,20 @@ export default function RegisterPage() {
     })
 
     if (authError) {
-      setError(authError.message)
+      // Traduz as mensagens mais comuns do Supabase
+      if (authError.message.includes('Password should be')) {
+        setError("A senha não atende aos requisitos de segurança. Use ao menos 8 caracteres com maiúsculas, números e símbolos.")
+      } else if (authError.message.includes('User already registered')) {
+        setError("Este e-mail já está cadastrado.")
+      } else {
+        setError(authError.message)
+      }
       setLoading(false)
       return
     }
 
     if (authData.user) {
-      // 2. Insere na tabela profiles
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        username: username,
-      })
-
-      if (profileError) {
-        if (profileError.code === '23505') {
-          setError("Este nome de usuário já está em uso.")
-        } else {
-          setError("Erro ao criar perfil. Tente novamente.")
-        }
-        setLoading(false)
-        return
-      }
-
+      // O perfil é criado automaticamente pelo trigger handle_new_user no banco.
       router.push("/")
     }
   }
@@ -115,12 +119,13 @@ export default function RegisterPage() {
             <input 
               type="password" 
               required
-              minLength={6}
+              minLength={8}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-zinc-950/50 border border-zinc-800 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all placeholder:text-zinc-600"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
             />
+            <p className="mt-1.5 text-xs text-zinc-500">Use letras maiúsculas, números e símbolos (ex: @, !, #)</p>
           </div>
 
           <motion.button 
