@@ -1,0 +1,173 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Profile {
+  id              String            @id @db.Uuid
+  username        String            @unique
+  avatarUrl       String?           @map("avatar_url")
+  bio             String?
+  role            String            @default("user")
+  isBanned        Boolean           @default(false) @map("is_banned")
+  createdAt       DateTime          @default(now()) @map("created_at") @db.Timestamptz()
+  
+  mediaCreated    Media[]
+  userMedia       UserMedia[]
+  reviews         Review[]
+  tasteProfile    UserTasteProfile?
+  recommendations Recommendation[]
+  friendshipsReq  Friendship[]      @relation("Requester")
+  friendshipsAdd  Friendship[]      @relation("Addressee")
+  sharedLists     SharedList[]
+  listItemsAdded  SharedListItem[]
+  moderationsMade ModerationLog[]   @relation("Admin")
+  moderationsTgt  ModerationLog[]   @relation("TargetUser")
+
+  @@map("profiles")
+}
+
+model Media {
+  id            String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tmdbId        Int?              @map("tmdb_id")
+  type          String            
+  title         String
+  overview      String?
+  posterUrl     String?           @map("poster_url")
+  backdropUrl   String?           @map("backdrop_url")
+  genres        String[]
+  releaseYear   Int?              @map("release_year")
+  isCustom      Boolean           @default(false) @map("is_custom")
+  customStatus  String            @default("approved") @map("custom_status")
+  createdBy     String?           @map("created_by") @db.Uuid
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz()
+
+  creator       Profile?          @relation(fields: [createdBy], references: [id])
+  userMedia     UserMedia[]
+  reviews       Review[]
+  recommendations Recommendation[]
+  sharedListItems SharedListItem[]
+  moderationLogs  ModerationLog[]
+
+  @@map("media")
+}
+
+model UserMedia {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  mediaId   String   @map("media_id") @db.Uuid
+  status    String   
+  liked     Boolean? 
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId])
+  @@map("user_media")
+}
+
+model Review {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  mediaId   String   @map("media_id") @db.Uuid
+  content   String
+  rating    Int?     @db.SmallInt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, mediaId])
+  @@map("reviews")
+}
+
+model UserTasteProfile {
+  userId      String   @id @map("user_id") @db.Uuid
+  genreScores Json     @default("{}") @map("genre_scores")
+  tagScores   Json     @default("{}") @map("tag_scores")
+  updatedAt   DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  user        Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_taste_profile")
+}
+
+model Recommendation {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  mediaId   String   @map("media_id") @db.Uuid
+  score     Float
+  reason    String?
+  seen      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@map("recommendations")
+}
+
+model Friendship {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requester String   @db.Uuid
+  addressee String   @db.Uuid
+  status    String   @default("pending")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  reqUser   Profile  @relation("Requester", fields: [requester], references: [id], onDelete: Cascade)
+  addUser   Profile  @relation("Addressee", fields: [addressee], references: [id], onDelete: Cascade)
+
+  @@unique([requester, addressee])
+  @@map("friendships")
+}
+
+model SharedList {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  ownerId     String   @map("owner_id") @db.Uuid
+  name        String
+  description String?
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  owner       Profile  @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  items       SharedListItem[]
+
+  @@map("shared_lists")
+}
+
+model SharedListItem {
+  listId  String   @map("list_id") @db.Uuid
+  mediaId String   @map("media_id") @db.Uuid
+  addedBy String?  @map("added_by") @db.Uuid
+  addedAt DateTime @default(now()) @map("added_at") @db.Timestamptz()
+
+  list    SharedList @relation(fields: [listId], references: [id], onDelete: Cascade)
+  media   Media      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  adder   Profile?   @relation(fields: [addedBy], references: [id])
+
+  @@id([listId, mediaId])
+  @@map("shared_list_items")
+}
+
+model ModerationLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adminId    String?  @map("admin_id") @db.Uuid
+  targetUser String?  @map("target_user") @db.Uuid
+  mediaId    String?  @map("media_id") @db.Uuid
+  action     String
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  admin      Profile? @relation("Admin", fields: [adminId], references: [id])
+  target     Profile? @relation("TargetUser", fields: [targetUser], references: [id])
+  media      Media?   @relation(fields: [mediaId], references: [id])
+
+  @@map("moderation_log")
+}
