@@ -58,19 +58,37 @@ model Media {
 }
 
 model UserMedia {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  mediaId   String   @map("media_id") @db.Uuid
-  status    String   
-  liked     Boolean? 
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+  id              String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  mediaId         String         @map("media_id") @db.Uuid
+  status          String   
+  liked           Boolean? 
+  ratingReaction  String?        @map("rating_reaction")
+  startedAt       DateTime?      @map("started_at") @db.Timestamptz()
+  finishedAt      DateTime?      @map("finished_at") @db.Timestamptz()
+  createdAt       DateTime       @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime       @default(now()) @map("updated_at") @db.Timestamptz()
 
-  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  media     Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  user            Profile        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  media           Media          @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  watchHistories  WatchHistory[]
 
   @@unique([userId, mediaId])
   @@map("user_media")
+}
+
+model WatchHistory {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userMediaId   String    @map("user_media_id") @db.Uuid
+  seasonNumber  Int?      @map("season_number")
+  startedAt     DateTime? @map("started_at") @db.Timestamptz()
+  finishedAt    DateTime? @map("finished_at") @db.Timestamptz()
+  isRewatch     Boolean?  @default(false) @map("is_rewatch")
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+
+  userMedia     UserMedia @relation(fields: [userMediaId], references: [id], onDelete: Cascade)
+
+  @@map("watch_history")
 }
 
 model Review {
