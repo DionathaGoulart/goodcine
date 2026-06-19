@@ -10,8 +10,8 @@ import { useUser } from "@/lib/hooks/useUser"
 
 const navLinks = [
   { href: "/", label: "Início" },
-  { href: "/search?type=movie", label: "Filmes" },
-  { href: "/search?type=tv", label: "Séries" },
+  { href: "/movies", label: "Filmes" },
+  { href: "/series", label: "Séries" },
   { href: "/my-list", label: "Minha Lista" },
   { href: "/social/friends", label: "Amigos" },
 ]
